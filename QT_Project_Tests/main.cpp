@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <QApplication>
+#include <QCoreApplication>
 
  /**
   * @brief Initializes and runs all Google Test unit tests.
@@ -14,7 +14,7 @@
 auto main(int argc, char* argv[]) -> int
 {
     testing::InitGoogleTest(&argc, argv);
-    QApplication app(argc, argv);
+    QCoreApplication app(argc, argv);
     app.setApplicationName(QStringLiteral("QtCommonLib_Tests"));
     app.setOrganizationName(QStringLiteral("Dingola"));
     app.setOrganizationDomain(QStringLiteral("AdrianHelbig.de"));

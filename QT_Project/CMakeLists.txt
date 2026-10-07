@@ -48,7 +48,6 @@ file(GLOB_RECURSE Headers
 )
 
 file(GLOB_RECURSE Sources
-     "main.cpp"
      "Sources/*.cpp"
      "Headers/*/*.cpp"
 )
@@ -64,7 +63,7 @@ include_directories(Headers Sources)
 ### Qt6 Configuration                    ###
 ############################################
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core LinguistTools)
 qt_standard_project_setup()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC OFF)
@@ -73,7 +72,10 @@ qt6_add_resources(RSCS resources.qrc)
 add_custom_target(${PROJECT_NAME}_gen_qrc DEPENDS ${RSCS})
 set_target_properties(${PROJECT_NAME}_gen_qrc PROPERTIES FOLDER "_Tasks")
 
-qt6_wrap_ui(UI_HEADERS ${Forms})
+if (${MAIN_PROJECT_NAME}_BUILD_TARGET_TYPE STREQUAL executable)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+    qt6_wrap_ui(UI_HEADERS ${Forms})
+endif()
 
 ############################################
 ### Translation Configuration            ###
@@ -215,7 +217,11 @@ else()
 	message(FATAL_ERROR "Build type not specified")
 endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+if (${MAIN_PROJECT_NAME}_BUILD_TARGET_TYPE STREQUAL executable)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Core)
+endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Doxygen.cmake)
 
 if (WIN32)
@@ -244,6 +250,10 @@ target_sources(${PROJECT_NAME}
 		${RSCS}
 		${UI_HEADERS}
 )
+
+if (${MAIN_PROJECT_NAME}_BUILD_TARGET_TYPE STREQUAL executable)
+    target_sources(${PROJECT_NAME} PRIVATE main.cpp)
+endif()
 
 if (WIN32)
     if (${MAIN_PROJECT_NAME}_BUILD_TARGET_TYPE STREQUAL executable)
