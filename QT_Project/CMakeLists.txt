@@ -63,7 +63,7 @@ include_directories(Headers Sources)
 ### Qt6 Configuration                    ###
 ############################################
 
-find_package(Qt6 REQUIRED COMPONENTS Core LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core LinguistTools Sql)
 qt_standard_project_setup()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC OFF)
@@ -218,9 +218,9 @@ else()
 endif()
 
 if (${MAIN_PROJECT_NAME}_BUILD_TARGET_TYPE STREQUAL executable)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Sql)
 else()
-    target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Core)
+    target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Core Qt6::Sql)
 endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Doxygen.cmake)
 
