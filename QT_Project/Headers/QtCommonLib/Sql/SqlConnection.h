@@ -6,20 +6,23 @@
 #include <QStringList>
 
 /**
- * @file SqliteConnection.h
- * @brief Declares an owning SQLite connection with deterministic Qt SQL cleanup.
+ * @file SqlConnection.h
+ * @brief Declares an owning SQL connection with deterministic Qt SQL cleanup.
  */
 
 namespace QtCommonLib
 {
 
 /**
- * @struct SqliteConnectionOptions
+ * @struct SqlConnectionOptions
  * @brief Defines optional Qt SQL and connection-initialization settings.
  */
-struct SqliteConnectionOptions {
+struct SqlConnectionOptions {
+        /** @brief Qt SQL driver used to create the database connection. */
+        QString driver_name{QStringLiteral("QSQLITE")};
+
         /** @brief Prefix used when generating the unique Qt SQL connection name. */
-        QString connection_name_prefix{QStringLiteral("sqlite")};
+        QString connection_name_prefix{QStringLiteral("sql")};
 
         /** @brief Driver-specific options passed to QSqlDatabase before opening. */
         QString connect_options;
@@ -34,57 +37,58 @@ struct SqliteConnectionOptions {
 };
 
 /**
- * @class SqliteConnection
- * @brief Owns one uniquely named Qt SQLite connection for its complete lifetime.
+ * @class SqlConnection
+ * @brief Owns one uniquely named Qt SQL connection for its complete lifetime.
  *
  * The class opens the connection during construction and unregisters it during destruction.
- * Filesystem preparation and application-specific PRAGMA selection remain responsibilities of
- * the caller. The owner and all handles obtained from it must be used and destroyed in the thread
- * in which the owner was constructed.
+ * Database preparation and driver-specific connection setup remain responsibilities of the
+ * caller. The owner and all handles obtained from it must be used and destroyed in the thread in
+ * which the owner was constructed.
  */
-class SqliteConnection final
+class SqlConnection final
 {
     public:
         /**
-         * @brief Opens a uniquely named SQLite connection.
-         * @param database_name SQLite database name such as a file path or `:memory:`.
+         * @brief Opens a uniquely named SQL connection.
+         * @param database_name Driver-specific database name such as an SQLite file path or
+         * `:memory:`.
          * @param options Optional connection and initialization settings.
          */
-        explicit SqliteConnection(QString database_name, const SqliteConnectionOptions& options =
-                                                             SqliteConnectionOptions());
+        explicit SqlConnection(QString database_name,
+                               const SqlConnectionOptions& options = SqlConnectionOptions());
 
         /** @brief Closes and unregisters the owned Qt SQL connection. */
-        ~SqliteConnection();
+        ~SqlConnection();
 
         /**
          * @brief Prevents copying ownership of a registered Qt SQL connection.
          * @param other Connection owner that would otherwise be copied.
          */
-        SqliteConnection(const SqliteConnection& other) = delete;
+        SqlConnection(const SqlConnection& other) = delete;
 
         /**
          * @brief Prevents copy assignment of a registered Qt SQL connection.
          * @param other Connection owner that would otherwise be assigned.
          * @return Reference to this connection owner.
          */
-        auto operator=(const SqliteConnection& other) -> SqliteConnection& = delete;
+        auto operator=(const SqlConnection& other) -> SqlConnection& = delete;
 
         /**
          * @brief Prevents moving ownership of a registered Qt SQL connection.
          * @param other Connection owner that would otherwise be moved.
          */
-        SqliteConnection(SqliteConnection&& other) = delete;
+        SqlConnection(SqlConnection&& other) = delete;
 
         /**
          * @brief Prevents move assignment of a registered Qt SQL connection.
          * @param other Connection owner that would otherwise be move-assigned.
          * @return Reference to this connection owner.
          */
-        auto operator=(SqliteConnection&& other) -> SqliteConnection& = delete;
+        auto operator=(SqlConnection&& other) -> SqlConnection& = delete;
 
         /**
          * @brief Reports whether the owned database is currently open.
-         * @return True when the registered SQLite connection is open.
+         * @return True when the registered SQL connection is open.
          */
         [[nodiscard]] auto is_open() const -> bool;
 

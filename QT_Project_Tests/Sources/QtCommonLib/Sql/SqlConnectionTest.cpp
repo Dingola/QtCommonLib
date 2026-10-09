@@ -1,6 +1,6 @@
 /**
- * @file SqliteConnectionTest.cpp
- * @brief Verifies reusable SQLite connection ownership and initialization behavior.
+ * @file SqlConnectionTest.cpp
+ * @brief Verifies reusable SQL connection ownership and initialization behavior.
  */
 
 #include <gtest/gtest.h>
@@ -9,27 +9,27 @@
 #include <QSqlError>
 #include <QSqlQuery>
 
-#include "QtCommonLib/Sql/SqliteConnection.h"
+#include "QtCommonLib/Sql/SqlConnection.h"
 #include "QtCommonLib/TestSupport/TestFileSystem.h"
 
-using QtCommonLib::SqliteConnection;
-using QtCommonLib::SqliteConnectionOptions;
+using QtCommonLib::SqlConnection;
+using QtCommonLib::SqlConnectionOptions;
 using QtCommonLib::TestFileSystem;
 
 /** @test Verifies caller-provided options and initialization statements are applied. */
-TEST(SqliteConnectionTest, OpensAndInitializesDatabase)
+TEST(SqlConnectionTest, OpensAndInitializesDatabase)
 {
     TestFileSystem file_system;
     ASSERT_TRUE(file_system.is_valid());
     const QString database_path = file_system.nonexistent_path(QStringLiteral("configured.sqlite"));
     ASSERT_FALSE(database_path.isEmpty());
-    SqliteConnectionOptions options;
+    SqlConnectionOptions options;
     options.connection_name_prefix = QStringLiteral("configured_connection");
     options.connect_options = QStringLiteral("QSQLITE_BUSY_TIMEOUT=2500");
     options.connection_setup_statements = {QStringLiteral("PRAGMA foreign_keys=ON"),
                                            QStringLiteral("PRAGMA busy_timeout=2500")};
 
-    SqliteConnection connection(database_path, options);
+    SqlConnection connection(database_path, options);
 
     ASSERT_TRUE(connection.is_open());
     EXPECT_TRUE(connection.connection_name().startsWith(QStringLiteral("configured_connection_")));
@@ -49,15 +49,15 @@ TEST(SqliteConnectionTest, OpensAndInitializesDatabase)
 }
 
 /** @test Verifies separate owners receive distinct connection names for one database. */
-TEST(SqliteConnectionTest, GeneratesUniqueConnectionNames)
+TEST(SqlConnectionTest, GeneratesUniqueConnectionNames)
 {
     TestFileSystem file_system;
     ASSERT_TRUE(file_system.is_valid());
     const QString database_path = file_system.nonexistent_path(QStringLiteral("shared.sqlite"));
     ASSERT_FALSE(database_path.isEmpty());
 
-    SqliteConnection first_connection(database_path);
-    SqliteConnection second_connection(database_path);
+    SqlConnection first_connection(database_path);
+    SqlConnection second_connection(database_path);
 
     ASSERT_TRUE(first_connection.is_open());
     ASSERT_TRUE(second_connection.is_open());
@@ -65,7 +65,7 @@ TEST(SqliteConnectionTest, GeneratesUniqueConnectionNames)
 }
 
 /** @test Verifies destruction closes and unregisters the owned Qt SQL connection. */
-TEST(SqliteConnectionTest, UnregistersConnectionOnDestruction)
+TEST(SqlConnectionTest, UnregistersConnectionOnDestruction)
 {
     TestFileSystem file_system;
     ASSERT_TRUE(file_system.is_valid());
@@ -73,7 +73,7 @@ TEST(SqliteConnectionTest, UnregistersConnectionOnDestruction)
     ASSERT_FALSE(database_path.isEmpty());
     QString connection_name;
     {
-        SqliteConnection connection(database_path);
+        SqlConnection connection(database_path);
         ASSERT_TRUE(connection.is_open());
         connection_name = connection.connection_name();
         EXPECT_TRUE(QSqlDatabase::contains(connection_name));
@@ -82,17 +82,17 @@ TEST(SqliteConnectionTest, UnregistersConnectionOnDestruction)
 }
 
 /** @test Verifies a failed initialization statement closes the connection and reports its error. */
-TEST(SqliteConnectionTest, ReportsInitializationFailure)
+TEST(SqlConnectionTest, ReportsInitializationFailure)
 {
     TestFileSystem file_system;
     ASSERT_TRUE(file_system.is_valid());
     const QString database_path =
         file_system.nonexistent_path(QStringLiteral("invalid-initialization.sqlite"));
     ASSERT_FALSE(database_path.isEmpty());
-    SqliteConnectionOptions options;
+    SqlConnectionOptions options;
     options.connection_setup_statements = {QStringLiteral("INVALID SQL")};
 
-    SqliteConnection connection(database_path, options);
+    SqlConnection connection(database_path, options);
 
     EXPECT_FALSE(connection.is_open());
     EXPECT_NE(connection.last_error().type(), QSqlError::NoError);
@@ -100,13 +100,13 @@ TEST(SqliteConnectionTest, ReportsInitializationFailure)
 }
 
 /** @test Verifies an SQLite open failure is exposed and cleaned up with the owner. */
-TEST(SqliteConnectionTest, ReportsOpenFailure)
+TEST(SqlConnectionTest, ReportsOpenFailure)
 {
     TestFileSystem file_system;
     ASSERT_TRUE(file_system.is_valid());
     QString connection_name;
     {
-        SqliteConnection connection(file_system.root_path());
+        SqlConnection connection(file_system.root_path());
         connection_name = connection.connection_name();
         EXPECT_FALSE(connection.is_open());
         EXPECT_NE(connection.last_error().type(), QSqlError::NoError);

@@ -9,11 +9,11 @@
 #include <QSqlError>
 #include <QSqlQuery>
 
+#include "QtCommonLib/Sql/SqlConnection.h"
 #include "QtCommonLib/Sql/SqlTransaction.h"
-#include "QtCommonLib/Sql/SqliteConnection.h"
 #include "QtCommonLib/TestSupport/TestFileSystem.h"
 
-using QtCommonLib::SqliteConnection;
+using QtCommonLib::SqlConnection;
 using QtCommonLib::SqlTransaction;
 using QtCommonLib::TestFileSystem;
 
@@ -24,7 +24,7 @@ TEST(SqlTransactionTest, CommitsChanges)
     ASSERT_TRUE(file_system.is_valid());
     const QString database_path = file_system.nonexistent_path(QStringLiteral("committed.sqlite"));
     ASSERT_FALSE(database_path.isEmpty());
-    SqliteConnection connection(database_path);
+    SqlConnection connection(database_path);
     ASSERT_TRUE(connection.is_open());
     QSqlDatabase database = connection.database();
     QSqlQuery setup_query(database);
@@ -55,7 +55,7 @@ TEST(SqlTransactionTest, RollsBackActiveTransactionOnDestruction)
     const QString database_path =
         file_system.nonexistent_path(QStringLiteral("automatic-rollback.sqlite"));
     ASSERT_FALSE(database_path.isEmpty());
-    SqliteConnection connection(database_path);
+    SqlConnection connection(database_path);
     ASSERT_TRUE(connection.is_open());
     QSqlDatabase database = connection.database();
     QSqlQuery setup_query(database);
@@ -84,7 +84,7 @@ TEST(SqlTransactionTest, RollsBackChangesExplicitly)
     const QString database_path =
         file_system.nonexistent_path(QStringLiteral("explicit-rollback.sqlite"));
     ASSERT_FALSE(database_path.isEmpty());
-    SqliteConnection connection(database_path);
+    SqlConnection connection(database_path);
     ASSERT_TRUE(connection.is_open());
     QSqlDatabase database = connection.database();
     QSqlQuery setup_query(database);
@@ -114,7 +114,7 @@ TEST(SqlTransactionTest, ReportsBeginFailure)
     const QString database_path =
         file_system.nonexistent_path(QStringLiteral("failed-begin.sqlite"));
     ASSERT_FALSE(database_path.isEmpty());
-    SqliteConnection connection(database_path);
+    SqlConnection connection(database_path);
     ASSERT_TRUE(connection.is_open());
     QSqlDatabase database = connection.database();
     ASSERT_TRUE(database.transaction());
