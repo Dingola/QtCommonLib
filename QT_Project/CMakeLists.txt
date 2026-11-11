@@ -42,17 +42,17 @@ set(DOC_TARGET_NAME project)
 ### Setup Project File Includes          ###
 ############################################
 
-file(GLOB_RECURSE Headers
+file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS CONFIGURE_DEPENDS
      "Headers/*.h"
      "Headers/*/*.h"
 )
 
-file(GLOB_RECURSE Sources
+file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES CONFIGURE_DEPENDS
      "Sources/*.cpp"
      "Headers/*/*.cpp"
 )
 
-file(GLOB_RECURSE Forms
+file(GLOB_RECURSE ${PROJECT_NAME}_FORMS CONFIGURE_DEPENDS
     "Forms/*.ui"
     "Forms/*/*.ui"
 )
@@ -68,13 +68,13 @@ qt_standard_project_setup()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC OFF)
 set(CMAKE_AUTORCC ON)
-qt6_add_resources(RSCS resources.qrc)
-add_custom_target(${PROJECT_NAME}_gen_qrc DEPENDS ${RSCS})
+qt6_add_resources(${PROJECT_NAME}_RESOURCES resources.qrc)
+add_custom_target(${PROJECT_NAME}_gen_qrc DEPENDS ${${PROJECT_NAME}_RESOURCES})
 set_target_properties(${PROJECT_NAME}_gen_qrc PROPERTIES FOLDER "_Tasks")
 
 if (${MAIN_PROJECT_NAME}_BUILD_TARGET_TYPE STREQUAL executable)
     find_package(Qt6 REQUIRED COMPONENTS Widgets)
-    qt6_wrap_ui(UI_HEADERS ${Forms})
+    qt6_wrap_ui(${PROJECT_NAME}_UI_HEADERS ${${PROJECT_NAME}_FORMS})
 endif()
 
 ############################################
@@ -129,8 +129,8 @@ if(USE_CLANG_FORMAT)
             COMMAND ${CLANG_FORMAT}
             -style=file:${CMAKE_SOURCE_DIR}/Configs/.clang-format
             -i
-            ${Headers}
-            ${Sources}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES}
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             COMMENT "Formatting code with clang-format"
         )
@@ -152,8 +152,8 @@ if(USE_CLANG_TIDY)
             COMMAND ${CLANG_TIDY}
 			--config-file=${CMAKE_SOURCE_DIR}/Configs/.clang-tidy
             -p=${CMAKE_BINARY_DIR}
-            ${Headers}
-            ${Sources}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES}
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             COMMENT "Running clang-tidy for static analysis"
         )
@@ -245,10 +245,10 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-		${Headers}
-		${Sources}
-		${RSCS}
-		${UI_HEADERS}
+		${${PROJECT_NAME}_HEADERS}
+		${${PROJECT_NAME}_SOURCES}
+		${${PROJECT_NAME}_RESOURCES}
+		${${PROJECT_NAME}_UI_HEADERS}
 )
 
 if (${MAIN_PROJECT_NAME}_BUILD_TARGET_TYPE STREQUAL executable)
@@ -299,10 +299,10 @@ endif()
 ### Setup source groups                  ###
 ############################################
 
-group_files("${Sources}" "Source Files")
-group_files("${Headers}" "Header Files")
-group_files("${Forms}" "UI Files")
-group_files("${UI_HEADERS}" "Auto-Generated UI Headers")
+group_files("${${PROJECT_NAME}_SOURCES}" "Source Files")
+group_files("${${PROJECT_NAME}_HEADERS}" "Header Files")
+group_files("${${PROJECT_NAME}_FORMS}" "UI Files")
+group_files("${${PROJECT_NAME}_UI_HEADERS}" "Auto-Generated UI Headers")
 
 # Specifies include directories to use when compiling a given target
 target_include_directories(${PROJECT_NAME}
